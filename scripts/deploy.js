@@ -8,21 +8,25 @@ const hre = require("hardhat");
 
 async function main() {
   const campaignGoal = 3;
+  const tokenName = "Raise Money Token"
+  const tokenSymbol = "RM"
+  const initialTokenSupply = 100
 
   const FundToken = await hre.ethers.getContractFactory("CrowdFundToken");
-  const fundToken = await FundToken.deploy("Raise Money", "RM");
+  const fundToken = await FundToken.deploy(tokenName, tokenSymbol, initialTokenSupply);
   await fundToken.deployed();
   console.log(
     `Crowdfunding Token deployed to ${fundToken.address}`
   );
 
-  const CFC = await hre.ethers.getContractFactory("CrowdFundingCampaign");
+  const CFC = await hre.ethers.getContractFactory("CrowdfundingCampaign");
   const cfc = await CFC.deploy(fundToken.address, campaignGoal);
   await cfc.deployed();
 
   console.log(
-    `Crowdfunding Campaign with campaign goal of ${campaignGoal} ${fundToken.symbol} tokens, deployed to ${cfc.address}`
+    `Crowdfunding Campaign with campaign goal of ${campaignGoal} ${tokenSymbol}tokens, deployed to ${cfc.address}`
   );
+  // console.log( await cfc.functions.fundingGoal())
 }
 
 // We recommend this pattern to be able to use async/await everywhere
