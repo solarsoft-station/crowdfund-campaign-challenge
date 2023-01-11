@@ -1,5 +1,5 @@
 {
-  "name": "metacrafters",
+  "name": "metacrafters-challenge",
   "version": "1.0.0",
   "description": "Create a crowdfunding campaign where users can pledge funds to and claim funds from the contract.",
   "main": "index.js",

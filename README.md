@@ -10,7 +10,7 @@ Your contract(s) should be written such that:
 4. dApps using the contract can observe state changes in transaction logs
 5. Optional bonus: contract is upgradeable
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
+This project demonstrates a basic Hardhat use case. It comes with a contract, and a script that deploys that contract.
 
 ## Functionality
 

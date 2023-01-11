@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -10,7 +10,7 @@ contract CrowdfundingCampaign is AccessControl, Pausable {
     //using
     using SafeMath for uint256;
 
-    //state variables
+    //state variables in storage
     IERC20 token;
     address public manager;
     mapping(address => uint256) public pledges;
@@ -34,6 +34,16 @@ contract CrowdfundingCampaign is AccessControl, Pausable {
     //Errors
     error AlreadyRefunded();
 
+    //modifier
+    modifier forNewGoal{
+        require(
+            createNewGoal,
+            "Current goal has not been reached, solicit more pledges"
+        );
+        _;
+        createNewGoal = false;
+    }
+
     constructor(address _tokenAddress, uint256 _fundingGoal) {
         require(isContract(_tokenAddress), "Token address must be a contract.");
         require(_fundingGoal > 0, "Funding goal must be greater than 0.");
@@ -49,14 +59,10 @@ contract CrowdfundingCampaign is AccessControl, Pausable {
     function newGoal(uint256 _newFundingGoal)
         public
         whenNotPaused
+        forNewGoal
         onlyRole("admin")
     {
-        require(
-            createNewGoal,
-            "Current goal has not been reached, solicit more pledges"
-        );
         fundingGoal = _newFundingGoal;
-        createNewGoal = false;
         emit NewFundingGoal(_newFundingGoal);
     }
 
