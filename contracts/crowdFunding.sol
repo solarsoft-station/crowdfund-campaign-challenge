@@ -18,10 +18,12 @@ contract CrowdfundingCampaign is AccessControl, Pausable {
     uint256 public totalRaised;
     bool public funded;
     bool public goalMet;
+    bool public createNewGoal;
 
     // Events
     event FundingGoalMet();
     event FundingGoalNotMet();
+    event NewFundingGoal(uint256 indexed amount);
     event Pledged(address indexed pledger, uint256 amount);
     event Refunded(address indexed refundee, uint256 amount);
     event Withdrawn(address indexed withdrawer, uint256 amount);
@@ -38,8 +40,24 @@ contract CrowdfundingCampaign is AccessControl, Pausable {
         token = IERC20(_tokenAddress);
         manager = msg.sender;
         fundingGoal = _fundingGoal;
+        createNewGoal = false;
         // set access control
         _grantRole("admin", manager);
+        emit NewFundingGoal(_fundingGoal);
+    }
+
+    function newGoal(uint256 _newFundingGoal)
+        public
+        whenNotPaused
+        onlyRole("admin")
+    {
+        require(
+            createNewGoal,
+            "Current goal has not been reached, solicit more pledges"
+        );
+        fundingGoal = _newFundingGoal;
+        createNewGoal = false;
+        emit NewFundingGoal(_newFundingGoal);
     }
 
     function pledge(uint256 _amount) public payable whenNotPaused {
@@ -71,14 +89,17 @@ contract CrowdfundingCampaign is AccessControl, Pausable {
         emit Refunded(msg.sender, refundAmount);
     }
 
-    function withdraw() public onlyRole("admin") {
-        require(goalMet);
-        require(token.transfer(msg.sender, totalRaised));
-        emit Withdrawn(msg.sender, totalRaised);
+    function withdraw(address receiver) public onlyRole("admin") {
+        require(goalMet, "Solicit more pledges");
+        require(token.transfer(receiver, totalRaised));
+        createNewGoal = true;
+        emit Withdrawn(receiver, totalRaised);
     }
 
     function upgrade(address _newContract) public onlyRole("admin") {
-        CrowdfundingCampaign upgraded = CrowdfundingCampaign(payable(_newContract));
+        CrowdfundingCampaign upgraded = CrowdfundingCampaign(
+            payable(_newContract)
+        );
         token.transfer(address(upgraded), totalRaised);
         emit Upgraded(_newContract);
         selfdestruct(payable(msg.sender));
@@ -121,6 +142,7 @@ contract CrowdfundingCampaign is AccessControl, Pausable {
     fallback() external payable {
         emit ReceivedData(msg.sender, msg.value, msg.data);
     }
+
     //Receive
     receive() external payable {
         emit ReceivedETH(msg.sender, msg.value);
